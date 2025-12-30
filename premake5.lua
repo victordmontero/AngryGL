@@ -1,5 +1,6 @@
 -- author(s):Victor D.Montero(victordmontero)
 -- premake5.lua
+-- stylua: ignore start
 workspace "AngryGL"
    configurations { "Debug", "Release" }
    platforms { "Win32", "Win64", "Linux" }
@@ -52,6 +53,7 @@ project "AngryGL"
 	defines
 	{
 		-- "SD_ENABLE_IRRKLANG"
+		"GLM_ENABLE_EXPERIMENTAL"
 	}
 
   filter "configurations:Debug"
@@ -100,12 +102,16 @@ project "AngryGL"
 
 	libdirs {
 		"thirdparty/glfw/out/src",
-		"thirdparty/assimp/out/bin"
+		"thirdparty/assimp/out/lib",
+		"thirdparty/assimp/out/bin",
+		"thirdparty/assimp/out/contrib/zlib",
 	}
 	
 	links{
+		"zlibstaticd",
+		"z",
 		"glfw3",
-		"assimp"
+		"assimpd",
 	}
 
 project "assimplib"
@@ -115,38 +121,28 @@ project "assimplib"
 	location("thirdparty/assimp/")
 	includedirs{"./include"}
 	targetname "assimp"
+
+	cmake_opt = " -DASSIMP_BUILD_ZLIB=ON -DBUILD_SHARED_LIBS=OFF -DASSIMP_BUILD_TESTS=OFF "
  
 	cleancommands {
 		"{RMDIR} %{prj.location}/build/"
 	}
 	
+	buildcommands {
+	        "cmake -DCMAKE_BUILD_TYPE=%{cfg.buildcfg}" .. cmake_opt .. "%{prj.location} -B %{cfg.targetdir}",
+		"cmake --build %{cfg.targetdir} --config %{cfg.buildcfg}"
+	}
+	
+	rebuildcommands {
+		"{RMDIR} %{prj.location}/out/",
+	        "cmake -DCMAKE_BUILD_TYPE=%{cfg.buildcfg}" .. cmake_opt .. "%{prj.location} -B %{cfg.targetdir}",
+		"cmake --build %{cfg.targetdir} --config %{cfg.buildcfg}"
+	}
+
 	filter "configurations:Debug"
 		 targetdir "%{prj.location}/out"
-	
-	buildcommands {
-	   "cmake %{prj.location} -B %{cfg.targetdir}",
-		"cmake --build %{cfg.targetdir}"
-	}
-	
-	rebuildcommands {
-		"{RMDIR} %{prj.location}/out/",
-		"cmake %{prj.location} -B %{cfg.targetdir}",
-		"cmake --build %{cfg.targetdir}"
-	}
-	
 	filter "configurations:Release"
 		 targetdir "%{prj.location}/out"
-	
-	buildcommands {
-		"cmake -DCMAKE_BUILD_TYPE=Release %{prj.location} -B %{cfg.targetdir}",
-		"cmake --build %{cfg.targetdir} --config Release"
-	}
-	
-	rebuildcommands {
-		"{RMDIR} %{prj.location}/out/",
-		"cmake -DCMAKE_BUILD_TYPE=Release %{prj.location} -B %{cfg.targetdir}",
-		"cmake --build %{cfg.targetdir} --config Release"
-	}
 
 project "glfwlib"
 	kind "Makefile"
@@ -187,3 +183,4 @@ project "glfwlib"
 		"cmake -DCMAKE_BUILD_TYPE=Release %{prj.location} -B %{cfg.targetdir}",
 		"cmake --build %{cfg.targetdir} --config Release"
 	}
+-- stylua: ignore end
