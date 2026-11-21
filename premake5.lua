@@ -14,7 +14,8 @@ project "AngryGL"
  
    dependson {
 		"assimplib",
-		"glfwlib"
+		"sdllib",
+		"sdlmixerlib"
 	}
  
    files ({
@@ -32,11 +33,10 @@ project "AngryGL"
    })
    
    includedirs({
-	    --   "assimp/include",
 		  "glad/include",
-		--   "glfw",
 		  "stb",
-		--   "glm",
+		  "thirdparty/sdl/include",
+		  "thirdparty/sdl_mixer/include",
 	      "./"
 	})
 	
@@ -52,7 +52,6 @@ project "AngryGL"
 	
 	defines
 	{
-		-- "SD_ENABLE_IRRKLANG"
 		"GLM_ENABLE_EXPERIMENTAL"
 	}
 
@@ -79,11 +78,12 @@ project "AngryGL"
     architecture "x64"
 	
 	libdirs({
-		"glfw/lib-mingw-w64"
+		"thirdparty/sdl/lib-mingw-w64"
 	})
 	
 	links{
-		"libglfw3",
+		"libSDL2",
+		"libSDL2_mixer",
 		"libassimp"
 	}
 
@@ -93,7 +93,8 @@ project "AngryGL"
 
 	includedirs({
 		"include",
-		"thirdparty/glfw/include",
+		"thirdparty/sdl/include",
+		"thirdparty/sdl_mixer/include",
 		"thirdparty/assimp/include",
 		"thirdparty/assimp/out/include",
 		"thirdparty/stb",
@@ -101,18 +102,17 @@ project "AngryGL"
 	})
 
 	libdirs {
-		"thirdparty/glfw/out/src",
+		"thirdparty/sdl/out",
+		"thirdparty/sdl_mixer/out",
 		"thirdparty/assimp/out/lib",
-		"thirdparty/assimp/out/bin",
 		"thirdparty/assimp/out/contrib/zlib",
 	}
-	
-	links{
-		"zlibstaticd",
-		"z",
-		"glfw3",
-		"assimpd",
-	}
+
+  filter { "platforms:Linux", "configurations:Debug" }
+	links { "SDL2_mixerd", "SDL2d", "assimp", "zlibstatic", "m", "dl", "pthread" }
+
+  filter { "platforms:Linux", "configurations:Release" }
+	links { "SDL2_mixer", "SDL2", "assimp", "zlibstatic", "m", "dl", "pthread" }
 
 project "assimplib"
 	kind "Makefile"
@@ -144,43 +144,67 @@ project "assimplib"
 	filter "configurations:Release"
 		 targetdir "%{prj.location}/out"
 
-project "glfwlib"
+project "sdllib"
 	kind "Makefile"
 	objdir()
 	
-	location("thirdparty/glfw/")
+	location("thirdparty/sdl/")
 	includedirs{"./include"}
-	targetname "glfw"
+	targetname "sdllib"
+
+	-- sdllib
+	cmake_opt = " -DBUILD_SHARED_LIBS=OFF -DSDL_TEST=OFF -DSDL_TESTS=OFF -DSDL_TESTS_BUILD=OFF -DSDL_TESTS_INSTALL=OFF -DSDL_EXAMPLES=OFF "
+
  
 	cleancommands {
-		"{RMDIR} %{prj.location}/out/"
+		"{RMDIR} %{prj.location}/build/"
 	}
 	
+	buildcommands {
+	        "cmake -DCMAKE_BUILD_TYPE=%{cfg.buildcfg}" .. cmake_opt .. "%{prj.location} -B %{cfg.targetdir}",
+		"cmake --build %{cfg.targetdir} --config %{cfg.buildcfg}"
+	}
+	
+	rebuildcommands {
+		"{RMDIR} %{prj.location}/out/",
+	        "cmake -DCMAKE_BUILD_TYPE=%{cfg.buildcfg}" .. cmake_opt .. "%{prj.location} -B %{cfg.targetdir}",
+		"cmake --build %{cfg.targetdir} --config %{cfg.buildcfg}"
+	}
+
 	filter "configurations:Debug"
 		 targetdir "%{prj.location}/out"
-	
-	buildcommands {
-	   "cmake %{prj.location} -B %{cfg.targetdir}",
-		"cmake --build %{cfg.targetdir}"
-	}
-	
-	rebuildcommands {
-		"{RMDIR} %{prj.location}/out/",
-		"cmake %{prj.location} -B %{cfg.targetdir}",
-		"cmake --build %{cfg.targetdir}"
-	}
-	
 	filter "configurations:Release"
 		 targetdir "%{prj.location}/out"
+
+project "sdlmixerlib"
+	kind "Makefile"
+	objdir()
+	
+	location("thirdparty/sdl_mixer/")
+	includedirs{"./include"}
+	targetname "sdlmixerlib"
+
+	-- sdlmixerlib
+	cmake_opt = " -DBUILD_SHARED_LIBS=OFF -DSDL2MIXER_TESTS=OFF -DSDL2MIXER_EXAMPLES=OFF -DSDLMIXER_TESTS=OFF -DSDLMIXER_EXAMPLES=OFF -DSDL2MIXER_OPUS=OFF -DSDLMIXER_OPUS=OFF -DSDL2MIXER_MOD_XMP=OFF -DSDL2MIXER_MOD=OFF "
+
+ 
+	cleancommands {
+		"{RMDIR} %{prj.location}/build/"
+	}
 	
 	buildcommands {
-		"cmake -DCMAKE_BUILD_TYPE=Release %{prj.location} -B %{cfg.targetdir}",
-		"cmake --build %{cfg.targetdir} --config Release"
+	        "cmake -DCMAKE_BUILD_TYPE=%{cfg.buildcfg}" .. cmake_opt .. "%{prj.location} -B %{cfg.targetdir}",
+		"cmake --build %{cfg.targetdir} --config %{cfg.buildcfg}"
 	}
 	
 	rebuildcommands {
 		"{RMDIR} %{prj.location}/out/",
-		"cmake -DCMAKE_BUILD_TYPE=Release %{prj.location} -B %{cfg.targetdir}",
-		"cmake --build %{cfg.targetdir} --config Release"
+	        "cmake -DCMAKE_BUILD_TYPE=%{cfg.buildcfg}" .. cmake_opt .. "%{prj.location} -B %{cfg.targetdir}",
+		"cmake --build %{cfg.targetdir} --config %{cfg.buildcfg}"
 	}
+
+	filter "configurations:Debug"
+		 targetdir "%{prj.location}/out"
+	filter "configurations:Release"
+		 targetdir "%{prj.location}/out"
 -- stylua: ignore end
