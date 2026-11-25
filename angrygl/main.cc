@@ -33,7 +33,7 @@
 #define OPENGL_MINOR_VERSION 3
 
 #define FULLSCREEN 1
-#define DEBUG 0
+// #define DEBUG 0
 
 const int parallelism = 4;
 
@@ -73,7 +73,7 @@ glm::vec2 playerMovementDir(0.0f, 0.0f);
 float lastFireTime = 0.0f;
 bool isTryingToFire = false;
 const float fireInterval = 0.1f; // seconds
-const int spreadAmount = 20;
+int spreadAmount = 1;
 const float playerSpeed = 1.5f;
 const float playerCollisionRadius = 0.35f;
 bool isAlive = true;
@@ -159,6 +159,10 @@ void handleEvents()
             if (e.button.button == SDL_BUTTON_LEFT)
             {
                 isTryingToFire = e.type == SDL_MOUSEBUTTONDOWN;
+            }
+            if (e.button.button == SDL_BUTTON_RIGHT)
+            {
+                spreadAmount++;
             }
             break;
         case SDL_WINDOWEVENT:
@@ -1022,7 +1026,7 @@ int main(int argc, char *argv[])
                 glBindFramebuffer(GL_FRAMEBUFFER, sceneRenderFBO);
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-                if (DEBUG)
+#if DEBUG
                 {
                     basicerShader.use();
                     glBindVertexArray(obnoxiousQuadVAO);
@@ -1030,6 +1034,7 @@ int main(int argc, char *argv[])
                     basicerShader.setInt("tex", texUnit_emissionFBO);
                     glDrawArrays(GL_TRIANGLES, 0, 6);
                 }
+#endif
 
                 playerShader.use();
                 glUniformMatrix4fv(playerLightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));

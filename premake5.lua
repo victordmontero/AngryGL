@@ -1,5 +1,3 @@
--- author(s):Victor D.Montero(victordmontero)
--- premake5.lua
 -- stylua: ignore start
 workspace "AngryGL"
    configurations { "Debug", "Release" }
@@ -9,7 +7,7 @@ workspace "AngryGL"
 project "AngryGL"
    kind "WindowedApp"
    language "C++"
-   targetdir "bin/%{cfg.buildcfg}"
+   targetdir "bin/"
    objdir "obj"
  
    dependson {
@@ -40,16 +38,6 @@ project "AngryGL"
 	      "./"
 	})
 	
-	-- libdirs{
-	-- 	"assimp/lib",
-	-- 	"glfw/lib-vc2012"
-	-- }
-	
-	-- links{
-	-- 	"assimp-vc140-mt",
-	-- 	"glfw3dll"
-	-- }
-	
 	defines
 	{
 		"GLM_ENABLE_EXPERIMENTAL"
@@ -67,10 +55,6 @@ project "AngryGL"
     defines{"WIN32"}
     system "windows"
     architecture "x32"
-	
-	libdirs({
-		-- "thirdparty/wxWidgets/lib/vc_lib"
-	})
 
   filter  "platforms:Win64"
     defines{"WIN64"}
